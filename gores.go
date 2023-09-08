@@ -1,10 +1,8 @@
 package gores
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"log/slog"
 	"net/http"
 )
@@ -60,30 +58,6 @@ func Error(err error, message string, statusCode int, w http.ResponseWriter) {
 func ErrorBool(err error, errName string, status int, w http.ResponseWriter) bool {
 	if err != nil {
 		Error(err, fmt.Sprintf("%s: %s", errName, err.Error()), status, w)
-		return true
-	}
-	return false
-}
-
-func ErrorTx(tx pgx.Tx, ctx context.Context, errName string, w http.ResponseWriter) {
-	errRoll := tx.Rollback(ctx)
-	if errRoll != nil {
-		Error(errRoll, fmt.Sprintf("ERROR rollback: %s, ON: %s", errRoll.Error(), errName), http.StatusInternalServerError, w)
-		return
-	}
-	Error(nil, fmt.Sprintf("%s, execute ROLLBACK", errName), http.StatusInternalServerError, w)
-}
-
-func ErrorBoolTx(tx pgx.Tx, ctx context.Context, err error, errName string, w http.ResponseWriter) bool {
-	if err != nil {
-		errRoll := tx.Rollback(ctx)
-		if errRoll != nil {
-			slog.Error(errName, errName)
-			Error(errRoll, fmt.Sprintf("%s: %s, ON: %s", "error ROLLBACK", errRoll.Error(), errName), http.StatusInternalServerError, w)
-			return true
-		}
-		slog.Error(errName, err)
-		Error(err, fmt.Sprintf("%s | execute ROLLBACK, %s", errName, err.Error()), http.StatusInternalServerError, w)
 		return true
 	}
 	return false
