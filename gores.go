@@ -16,12 +16,9 @@ const (
 	keySuccess      = "success"
 	contentType     = "Content-Type"
 	appJson         = "application/json"
-	msgCreateUpdate = "create or update"
-	msgSuccess      = "success"
 )
 
 func Success(data interface{}, message string, statusCode int, w http.ResponseWriter) {
-	slog.Info(msgSuccess, slog.Any(keyData, data))
 	response := map[string]interface{}{
 		keyData:       data,
 		keyMessage:    message,
@@ -34,21 +31,18 @@ func Success(data interface{}, message string, statusCode int, w http.ResponseWr
 }
 
 func SuccessCreateOrUpdate(data interface{}, message string, w http.ResponseWriter) {
-	slog.Info(msgCreateUpdate, slog.Any(keyData, data))
 	w.Header().Set(contentType, appJson)
 	w.WriteHeader(http.StatusCreated)
 	errJson(successResponse(data, message, http.StatusCreated), w)
 }
 
 func UnAuthorized(w http.ResponseWriter, err error) {
-	slog.Error(err.Error())
 	w.Header().Set(contentType, appJson)
 	w.WriteHeader(http.StatusUnauthorized)
 	errJson(errResponse(errUnauthorized, err, http.StatusUnauthorized), w)
 }
 
 func Error(err error, message string, statusCode int, w http.ResponseWriter) {
-	defer slog.Error(err.Error())
 	errResponse(message, err, statusCode)
 	w.Header().Set(contentType, appJson)
 	w.WriteHeader(statusCode)
