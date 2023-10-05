@@ -2,13 +2,12 @@ package gores
 
 import (
 	"fmt"
-	"github.com/goccy/go-json"
-	"log/slog"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 const (
-	errEncode       = "error to encode: "
 	errUnauthorized = "error you are not authorized"
 	keyData         = "data"
 	keyMessage      = "message"
@@ -28,6 +27,16 @@ func Success(data interface{}, message string, statusCode int, w http.ResponseWr
 	w.Header().Set(contentType, appJson)
 	w.WriteHeader(statusCode)
 	errJson(response, w)
+}
+
+func SuccessText(message string, statusCode int, w http.ResponseWriter) {
+	response := fmt.Sprintf("%s", message)
+	w.Header().Set(contentType, "text/plain")
+	w.WriteHeader(statusCode)
+	_, err := w.Write([]byte(response))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func SuccessCreateOrUpdate(data interface{}, message string, w http.ResponseWriter) {
@@ -60,10 +69,10 @@ func ErrorBool(err error, errName string, status int, w http.ResponseWriter) boo
 func errJson(response map[string]interface{}, w http.ResponseWriter) {
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
-		slog.Error(errEncode+err.Error(), err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
 func errResponse(msg string, err error, statusCode int) map[string]interface{} {
 	return map[string]interface{}{
 		keyData: nil,
@@ -75,6 +84,7 @@ func errResponse(msg string, err error, statusCode int) map[string]interface{} {
 		"success":    false,
 	}
 }
+
 func successResponse(data interface{}, message string, statusCode int) map[string]interface{} {
 	return map[string]interface{}{
 		keyData:       data,
